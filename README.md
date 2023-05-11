@@ -16,6 +16,6 @@
 ├── scripts                  <- sql-скрипты
 ├── tests                    <- директория с Data Quality тестами
 ├── utils/pypsql.py          <- вспомогательный скрипт, чтобы не ставить дополнительно              
-│   └── conceptual-model.png    консольного клиента для Postgres (psql) 
+    └── conceptual-model.png    консольного клиента для Postgres (psql) 
 
 ```
