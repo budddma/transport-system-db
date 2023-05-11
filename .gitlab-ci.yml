@@ -1,0 +1,166 @@
+image: python:3.9-slim
+
+# стейджи пайплайна
+stages:
+  - tasks # у этого стейджа есть стэпы: 'tasks 3-5' & 'task 6th' & 'task 7th' & 'task 8th' & 'task 9th' & 'tasks 10-11'
+
+# внутри пайплайна автоматически поднимается
+# пустая база Postgres (каждый раз на новый степ)
+services:
+  - name: postgres:15-alpine
+    alias: postgres
+
+
+
+variables:
+#  переменные окружения для Postgres
+  POSTGRES_DB: postgres
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: password
+  POSTGRES_HOST_AUTH_METHOD: trust
+
+#  переменные окружения для вспомогательного
+#  скрипта utils/pypsql.py и тестов
+  DBNAME: postgres
+  DBHOST: postgres
+  DBPORT: 5432
+  DBUSER: postgres
+  DBPASSWORD: password
+
+#  аккуратное формирование всяких абсолютных
+#  путей к файлам и директориям
+#  у вас будет ${PROJECT_DIR} тождественно равен ${CI_PROJECT_DIR}
+  PROJECT_DIR: ${CI_PROJECT_DIR}
+  SCRIPTS_DIR: ${PROJECT_DIR}/scripts
+  TESTS_DIR: ${PROJECT_DIR}/tests
+  UTILS_DIR: ${PROJECT_DIR}/utils
+  PYPSQL: ${UTILS_DIR}/pypsql.py
+
+#  переменные для цвета в консоли (можете
+#  использовать какие-то другие свои)
+  NO_COLOUR: '\033[0m'
+  LIGHT_RED: '\033[1;31m'
+
+
+.setup:
+  before_script:
+    - pip install -r ${PROJECT_DIR}/requirements.txt > /dev/null 2> /dev/null
+
+
+tasks 3-5:
+  stage: tasks
+  extends:
+    - .setup
+  script:
+    - echo -e "${LIGHT_RED}>>> Task №3 <<<${NO_COLOUR}"
+    - python3 ${PYPSQL} --file="${SCRIPTS_DIR}/ddl.sql" --cat
+    - echo -e "${LIGHT_RED}>>> Task №4-5 <<<${NO_COLOUR}"
+    - python3 ${PYPSQL} --file="${SCRIPTS_DIR}/inserts.sql"
+
+    - echo "Table 'ts.stop' contains rows:"
+    - python3 ${PYPSQL} --sql="SELECT * FROM ts.stop" --verbose
+    - echo "Table 'ts.route' contains rows:"
+    - python3 ${PYPSQL} --sql="SELECT * FROM ts.route" --verbose
+    - echo "Table 'ts.vodila' contains rows:"
+    - python3 ${PYPSQL} --sql="SELECT * FROM ts.vodila" --verbose
+    - echo "Table 'ts.transport' contains rows:"
+    - python3 ${PYPSQL} --sql="SELECT * FROM ts.transport" --verbose
+    - echo "Table 'ts.trip' contains rows:"
+    - python3 ${PYPSQL} --sql="SELECT * FROM ts.trip" --verbose
+    - echo "Table 'ts.trip_history' contains rows:"
+    - python3 ${PYPSQL} --sql="SELECT * FROM ts.trip_history" --verbose
+    - echo "Table 'ts.bus_info' contains rows:"
+    - python3 ${PYPSQL} --sql="SELECT * FROM ts.bus_info" --verbose
+    - echo "Table 'ts.metro_info' contains rows:"
+    - python3 ${PYPSQL} --sql="SELECT * FROM ts.metro_info" --verbose
+
+
+task 6th:
+  stage: tasks
+  extends:
+    - .setup
+  script:
+    - echo -e "${LIGHT_RED}>>> Task №6 <<<${NO_COLOUR}"
+    - python3 ${PYPSQL} --file="${SCRIPTS_DIR}/ddl.sql" --cat
+    - python3 ${PYPSQL} --file="${SCRIPTS_DIR}/inserts.sql"
+
+    - python3 ${PYPSQL} --file="${SCRIPTS_DIR}/select_queries.sql" --cat
+
+
+task 7th:
+  stage: tasks
+  extends:
+    - .setup
+  script:
+    - echo -e "${LIGHT_RED}>>> Task №7 <<<${NO_COLOUR}"
+    - python3 ${PYPSQL} --file="${SCRIPTS_DIR}/ddl.sql" --cat
+    - python3 ${PYPSQL} --file="${SCRIPTS_DIR}/inserts.sql"
+
+    - python3 ${PYPSQL} --file="${SCRIPTS_DIR}/dq_check/route_check.sql" --verbose
+    - SCRIPT_PATH="${SCRIPTS_DIR}/dq_check/route_check.sql" pytest ${TESTS_DIR}/dq_check/route_check.py
+
+    - python3 ${PYPSQL} --file="${SCRIPTS_DIR}/dq_check/trip_check.sql" --verbose
+    - SCRIPT_PATH="${SCRIPTS_DIR}/dq_check/trip_check.sql" pytest ${TESTS_DIR}/dq_check/trip_check.py
+
+    - python3 ${PYPSQL} --file="${SCRIPTS_DIR}/dq_check/transport_check.sql" --verbose
+    - SCRIPT_PATH="${SCRIPTS_DIR}/dq_check/transport_check.sql" pytest ${TESTS_DIR}/dq_check/transport_check.py
+
+    - python3 ${PYPSQL} --file="${SCRIPTS_DIR}/dq_check/count_check.sql" --verbose
+    - SCRIPT_PATH="${SCRIPTS_DIR}/dq_check/count_check.sql" pytest ${TESTS_DIR}/dq_check/count_check.py
+
+
+task 8th:
+  stage: tasks
+  extends:
+    - .setup
+  script:
+    - echo -e "${LIGHT_RED}>>> Task №7 <<<${NO_COLOUR}"
+    - python3 ${PYPSQL} --file="${SCRIPTS_DIR}/ddl.sql" --cat
+    - python3 ${PYPSQL} --file="${SCRIPTS_DIR}/inserts.sql"
+
+    - python3 ${PYPSQL} --file="${SCRIPTS_DIR}/indexes.sql" --cat
+
+
+
+task 9th:
+  stage: tasks
+  extends:
+    - .setup
+  script:
+    - echo -e "${LIGHT_RED}>>> Task №9 <<<${NO_COLOUR}"
+    - python3 ${PYPSQL} --file="${SCRIPTS_DIR}/ddl.sql" --cat
+    - python3 ${PYPSQL} --file="${SCRIPTS_DIR}/inserts.sql"
+
+    - python3 ${PYPSQL} --file="${SCRIPTS_DIR}/views.sql"
+
+    - echo "View 'ts.bus_view' contains rows:"
+    - python3 ${PYPSQL} --sql="SELECT * FROM ts.bus_view" --verbose
+
+    - echo "View 'ts.vodila_view' contains rows:"
+    - python3 ${PYPSQL} --sql="SELECT * FROM ts.vodila_view" --verbose
+
+    - echo "View 'ts.route_curr_prev_stops' contains rows:"
+    - python3 ${PYPSQL} --sql="SELECT * FROM ts.route_curr_prev_stops" --verbose
+
+    - echo "View 'ts.route_init_final_stops' contains rows:"
+    - python3 ${PYPSQL} --sql="SELECT * FROM ts.route_init_final_stops" --verbose
+
+    - echo "View 'ts.vodila_route' contains rows:"
+    - python3 ${PYPSQL} --sql="SELECT * FROM ts.vodila_route" --verbose
+
+    - echo "View 'ts.vodila_number' contains rows:"
+    - python3 ${PYPSQL} --sql="SELECT * FROM ts.vodila_number" --verbose
+
+
+tasks 10-11:
+  stage: tasks
+  extends:
+    - .setup
+  script:
+    - echo -e "${LIGHT_RED}>>> Task №3 <<<${NO_COLOUR}"
+    - python3 ${PYPSQL} --file="${SCRIPTS_DIR}/ddl.sql" --cat
+    - echo -e "${LIGHT_RED}>>> Task №4-5 <<<${NO_COLOUR}"
+    - python3 ${PYPSQL} --file="${SCRIPTS_DIR}/inserts.sql"
+
+    - python3 ${PYPSQL} --file="${SCRIPTS_DIR}/stored.sql" --cat
+
