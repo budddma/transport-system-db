@@ -15,6 +15,7 @@
 ├── requirements.txt         <- зависимости для Python
 ├── scripts                  <- sql-скрипты
 ├── tests                    <- директория с Data Quality тестами
-├── utils/pypsql.py          <- вспомогательный скрипт, чтобы не ставить дополнительно 
-                                консольного клиента для Postgres (psql) 
+├── utils/pypsql.py          <- вспомогательный скрипт, чтобы не ставить дополнительно              
+│   ├── conceptual-model.png    консольного клиента для Postgres (psql) 
+
 ```
