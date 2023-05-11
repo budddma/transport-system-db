@@ -13,9 +13,6 @@
 .
 ├── .gitlab-ci.yml           <- описание пайплайна для проекта (по шагам)
 ├── docs                     <- картинки и таблички
-│   ├── conceptual-model.png
-│   ├── logical-model.png
-│   └── physical-model.md
 ├── requirements.txt         <- зависимости для Python
 ├── scripts                  <- sql-скрипты
 ├── tests                    <- директория с тестами (структура этой директории может быть другой на ваше усмотрение)
