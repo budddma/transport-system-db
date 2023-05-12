@@ -1,5 +1,5 @@
 -- Создаём кластеризованные индексы на первичном ключе,
--- хотя вроде в PostgreSQL они автоматом создаётся
+-- хотя вроде в PostgreSQL они автоматом создаются
 
 CREATE UNIQUE INDEX stop_index ON ts.stop (stop_id) include (stop_nm);
 
